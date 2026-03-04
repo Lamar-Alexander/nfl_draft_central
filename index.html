@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL Draft Hub 2026</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header id="site-header">
+    <div class="header-inner">
+      <button id="btn-back" class="hidden" aria-label="Back to team selection">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path d="M10.5 1.5L4 8l6.5 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        All Teams
+      </button>
+      <div class="header-title">
+        <h1>NFL Draft Central</h1>
+        <span class="draft-year">2026 NFL Draft &bull; April</span>
+      </div>
+      <div class="header-spacer"></div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- LANDING: Team selector -->
+    <section id="landing">
+      <div class="landing-hero">
+        <h2>Prepare for the 2026 Draft</h2>
+        <p>Select a team to explore their season review, key needs, and top draft prospects.</p>
+      </div>
+      <div id="team-grid" role="list" aria-label="Select a team"></div>
+    </section>
+
+    <!-- DASHBOARD: Team detail view -->
+    <section id="dashboard" class="hidden" aria-live="polite">
+      <div id="team-hero"></div>
+      <nav id="section-tabs" aria-label="Dashboard sections"></nav>
+      <div id="tab-content"></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p id="disclaimer">
+      <strong>Disclaimer:</strong> All season statistics, team needs assessments, and draft prospect information on this site are
+      illustrative placeholder data generated for demonstration purposes. Player names, statistics, and draft projections
+      are fictional and do not represent actual 2025&ndash;2026 NFL season results or the official 2026 NFL Draft class.
+    </p>
+  </footer>
+
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
+
+</body>
+</html>

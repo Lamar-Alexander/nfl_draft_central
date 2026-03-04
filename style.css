@@ -1,0 +1,798 @@
+/* ============================================================
+   NFL Draft Hub 2026 — Stylesheet
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1. CSS Custom Properties + Reset
+   ------------------------------------------------------------ */
+:root {
+  /* Team colors — defaults; overridden by JS on team select */
+  --team-primary: #1a1a2e;
+  --team-secondary: #16213e;
+  --team-accent: #e94560;
+  --team-primary-rgb: 26, 26, 46;
+  --team-accent-rgb: 233, 69, 96;
+
+  /* Base palette */
+  --bg:        #0f0f1a;
+  --surface:   #1a1a2a;
+  --surface-2: #242438;
+  --surface-3: #2e2e48;
+  --text:      #f0f0f5;
+  --text-muted: #8888aa;
+  --text-dim:   #5a5a78;
+  --border:    rgba(255,255,255,0.07);
+
+  /* Priority colors (static — not team-themed) */
+  --priority-high:   #e53e3e;
+  --priority-medium: #d97706;
+  --priority-low:    #38a169;
+
+  /* Rank badge colors */
+  --rank-good: #22543d;
+  --rank-good-text: #68d391;
+  --rank-mid:  #2d3748;
+  --rank-mid-text: #a0aec0;
+  --rank-bad:  #63171b;
+  --rank-bad-text: #fc8181;
+
+  /* Layout */
+  --radius:    12px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+  --transition: 0.25s ease;
+  --max-width: 1100px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main { flex: 1; }
+
+ul { list-style: none; }
+button { cursor: pointer; border: none; background: none; font: inherit; }
+a { color: inherit; }
+
+/* ------------------------------------------------------------
+   2. Utility Classes
+   ------------------------------------------------------------ */
+.hidden { display: none !important; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-silver {
+  color: #000 !important;
+}
+
+/* ------------------------------------------------------------
+   3. Header
+   ------------------------------------------------------------ */
+#site-header {
+  background: var(--team-primary);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background-color var(--transition);
+}
+
+.header-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-title {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.header-title h1 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.draft-year {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.header-spacer { flex: 1; }
+
+#btn-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.15);
+  transition: background-color var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+
+#btn-back:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------
+   4. Landing Page
+   ------------------------------------------------------------ */
+#landing {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+}
+
+.landing-hero {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.landing-hero h2 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.6) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.landing-hero p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Team selector grid */
+#team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.team-card {
+  background: #eef0f6;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border-top: 3px solid var(--card-accent, #555);
+  color: #1a1a2e;
+}
+
+.team-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(var(--card-accent-rgb, 85,85,85), 0.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(var(--card-accent-rgb, 85,85,85), 0.5);
+  box-shadow: 0 16px 40px rgba(var(--card-accent-rgb, 85,85,85), 0.25);
+}
+
+.team-card-abbr {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--card-accent, #555);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.team-card-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: #1a1a2e;
+}
+
+.team-card-city {
+  font-size: 0.85rem;
+  color: #555570;
+  margin-bottom: 16px;
+}
+
+.team-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pick-badge {
+  background: rgba(var(--card-accent-rgb, 85,85,85), 0.15);
+  color: var(--card-accent, #aaa);
+  border: 1px solid rgba(var(--card-accent-rgb, 85,85,85), 0.3);
+}
+
+.arrow-icon {
+  margin-left: auto;
+  color: #9090aa;
+  font-size: 1.2rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.team-card:hover .arrow-icon {
+  transform: translateX(4px);
+  color: var(--card-accent, #aaa);
+}
+
+/* ------------------------------------------------------------
+   5. Dashboard — Team Hero Banner
+   ------------------------------------------------------------ */
+#dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 60px);
+}
+
+#team-hero {
+  background: linear-gradient(135deg, var(--team-primary) 0%, var(--team-secondary) 100%);
+  padding: 40px 24px;
+  position: relative;
+  overflow: hidden;
+  transition: background var(--transition);
+}
+
+#team-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.hero-abbr {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: rgba(255,255,255,0.12);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.hero-text { flex: 1; min-width: 200px; }
+
+.hero-city {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 4px;
+}
+
+.hero-name {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hero-record {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.12);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.hero-pick {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--team-accent);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background var(--transition);
+}
+
+/* ------------------------------------------------------------
+   6. Dashboard — Tab Navigation
+   ------------------------------------------------------------ */
+#section-tabs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+  transition: background-color var(--transition);
+}
+
+.tabs-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs-inner::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 14px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color var(--transition), border-color var(--transition);
+  position: relative;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+.tab-btn.active {
+  color: var(--team-accent);
+  border-bottom-color: var(--team-accent);
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.tab-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------
+   7. Tab Content Area
+   ------------------------------------------------------------ */
+#tab-content {
+  flex: 1;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  width: 100%;
+  padding: 32px 24px 64px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tab-panel { animation: fadeIn 0.22s ease forwards; }
+
+/* Section headings within tabs */
+.section-heading {
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.section-sub {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+/* ------------------------------------------------------------
+   8. Season Review Tab
+   ------------------------------------------------------------ */
+.season-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 32px;
+  border-left: 3px solid var(--team-accent);
+  transition: border-color var(--transition);
+}
+
+.season-summary h3 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--team-accent);
+  margin-bottom: 12px;
+  transition: color var(--transition);
+}
+
+.season-summary p {
+  color: rgba(255,255,255,0.82);
+  font-size: 0.97rem;
+  line-height: 1.75;
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.rank-badge.rank-good {
+  background: var(--rank-good);
+  color: var(--rank-good-text);
+}
+
+.rank-badge.rank-mid {
+  background: var(--rank-mid);
+  color: var(--rank-mid-text);
+}
+
+.rank-badge.rank-bad {
+  background: var(--rank-bad);
+  color: var(--rank-bad-text);
+}
+
+/* Strengths & Weaknesses */
+.sw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sw-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.sw-card h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.sw-card.strengths h4 { color: var(--rank-good-text); }
+.sw-card.weaknesses h4 { color: var(--rank-bad-text); }
+
+.sw-card ul { display: flex; flex-direction: column; gap: 10px; }
+
+.sw-card li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+}
+
+.sw-card li::before {
+  content: '';
+  display: block;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-top: 7px;
+}
+
+.sw-card.strengths li::before { background: var(--rank-good-text); }
+.sw-card.weaknesses li::before { background: var(--rank-bad-text); }
+
+/* ------------------------------------------------------------
+   9. Team Needs Tab
+   ------------------------------------------------------------ */
+.needs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.need-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 20px;
+  align-items: start;
+  border-left: 3px solid var(--need-color, #555);
+}
+
+.need-pos-chip {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--need-color, #aaa);
+  border: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.need-content { min-width: 0; }
+
+.need-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.need-position-label {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.need-priority-badge {
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+
+.priority-high   { color: var(--priority-high); }
+.priority-medium { color: var(--priority-medium); }
+.priority-low    { color: var(--priority-low); }
+
+.need-description {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.65;
+}
+
+/* ------------------------------------------------------------
+   10. Draft Targets Tab
+   ------------------------------------------------------------ */
+.prospects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.prospect-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.prospect-card:hover {
+  border-color: rgba(var(--team-accent-rgb), 0.35);
+  transform: translateY(-2px);
+}
+
+.prospect-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.prospect-pos-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--team-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+
+.prospect-info { flex: 1; min-width: 0; }
+
+.prospect-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.prospect-school {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.prospect-round {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: rgba(var(--team-primary-rgb), 0.6);
+  border: 1px solid rgba(var(--team-accent-rgb), 0.3);
+  color: var(--team-accent);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.prospect-divider {
+  height: 1px;
+  background: var(--border);
+}
+
+.prospect-summary {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.76);
+  line-height: 1.65;
+}
+
+/* ------------------------------------------------------------
+   11. Footer
+   ------------------------------------------------------------ */
+footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 20px 24px;
+  margin-top: auto;
+}
+
+#disclaimer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  text-align: center;
+}
+
+#disclaimer strong { color: var(--text-muted); }
+
+/* ------------------------------------------------------------
+   12. Responsive
+   ------------------------------------------------------------ */
+@media (max-width: 768px) {
+  #team-grid { grid-template-columns: 1fr; }
+
+  .hero-abbr { font-size: 2.5rem; }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sw-grid { grid-template-columns: 1fr; }
+
+  .prospects-grid { grid-template-columns: 1fr; }
+
+  #tab-content { padding: 24px 16px 48px; }
+
+  #landing { padding: 40px 16px 60px; }
+
+  .need-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .need-pos-chip { display: none; }
+}
+
+@media (max-width: 480px) {
+  .header-inner { padding: 0 16px; }
+
+  #team-hero { padding: 28px 16px; }
+
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .hero-name { font-size: 1.5rem; }
+}
