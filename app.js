@@ -1,15 +1,33 @@
 /* ============================================================
-   NFL Draft Hub 2026 — Application Logic
+   NFL Draft Hub 2024 — Application Logic
    ============================================================ */
 
 /* ------------------------------------------------------------
-   A. State
+   A. Position filter map
+   Maps a team's needPosition string → CSV position codes
+   ------------------------------------------------------------ */
+const POSITION_FILTER = {
+  QB:   ['QB'],
+  WR:   ['WR'],
+  OL:   ['OL', 'OT', 'G', 'C'],
+  TE:   ['TE'],
+  DB:   ['DB', 'CB', 'SAF', 'FS'],
+  CB:   ['CB', 'DB'],
+  SAF:  ['SAF', 'DB', 'FS'],
+  EDGE: ['DE', 'OLB', 'DL'],
+  LB:   ['LB', 'OLB'],
+  DL:   ['DL', 'DT', 'DE'],
+  RB:   ['RB'],
+};
+
+/* ------------------------------------------------------------
+   B. State
    ------------------------------------------------------------ */
 let currentTeam = null;
 let currentTab  = 'season';
 
 /* ------------------------------------------------------------
-   B. Init
+   C. Init
    ------------------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', () => {
   renderLanding();
@@ -25,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ------------------------------------------------------------
-   C. Navigation
+   D. Navigation
    ------------------------------------------------------------ */
 function showLanding() {
   document.getElementById('dashboard').classList.add('hidden');
@@ -52,13 +70,13 @@ function showDashboard(teamId) {
 }
 
 /* ------------------------------------------------------------
-   D. Team Color Theming
+   E. Team Color Theming
    ------------------------------------------------------------ */
 function applyTeamColors(colors) {
   const root = document.documentElement;
-  root.style.setProperty('--team-primary',    colors.primary);
-  root.style.setProperty('--team-secondary',  colors.secondary);
-  root.style.setProperty('--team-accent',     colors.accent);
+  root.style.setProperty('--team-primary',     colors.primary);
+  root.style.setProperty('--team-secondary',   colors.secondary);
+  root.style.setProperty('--team-accent',      colors.accent);
   root.style.setProperty('--team-primary-rgb', colors.primaryRgb);
   root.style.setProperty('--team-accent-rgb',  colors.accentRgb);
 }
@@ -72,7 +90,7 @@ function resetTeamColors() {
 }
 
 /* ------------------------------------------------------------
-   E. Event Handlers
+   F. Event Handlers
    ------------------------------------------------------------ */
 function handleTeamCardClick(e) {
   const card = e.target.closest('[data-team-id]');
@@ -85,7 +103,6 @@ function handleTabClick(e) {
 
   currentTab = btn.dataset.tab;
 
-  // Update active state on tab buttons
   document.querySelectorAll('#section-tabs [data-tab]').forEach(b => {
     b.classList.toggle('active', b.dataset.tab === currentTab);
   });
@@ -94,7 +111,7 @@ function handleTabClick(e) {
 }
 
 /* ------------------------------------------------------------
-   F. Landing Render
+   G. Landing Render
    ------------------------------------------------------------ */
 function renderLanding() {
   const grid = document.getElementById('team-grid');
@@ -103,6 +120,7 @@ function renderLanding() {
 
 function renderTeamCard(team) {
   const [r, g, b] = hexToRgbParts(team.colors.primary);
+  const pickLabel = team.draftPick <= 32 ? `Pick #${team.draftPick}` : `R2 Pick #${team.draftPick}`;
   return `
     <div
       class="team-card"
@@ -117,7 +135,7 @@ function renderTeamCard(team) {
       <div class="team-card-name">${team.name}</div>
       <div class="team-card-city">${team.city}</div>
       <div class="team-card-meta">
-        <span class="badge pick-badge">Pick #${team.draftPick}</span>
+        <span class="badge pick-badge">${pickLabel}</span>
         <span class="badge" style="background: rgba(${r},${g},${b},0.12); color: rgba(${r},${g},${b},1); border: 1px solid rgba(${r},${g},${b},0.25);">${team.season.record}</span>
         <span class="arrow-icon">→</span>
       </div>
@@ -126,7 +144,7 @@ function renderTeamCard(team) {
 }
 
 /* ------------------------------------------------------------
-   G. Dashboard Render
+   H. Dashboard Render
    ------------------------------------------------------------ */
 function renderDashboard() {
   mountHero(renderHero(currentTeam));
@@ -134,21 +152,22 @@ function renderDashboard() {
   renderActiveTab();
 }
 
-function mountHero(html)  { document.getElementById('team-hero').innerHTML    = html; }
-function mountTabs(html)  { document.getElementById('section-tabs').innerHTML = html; }
+function mountHero(html)    { document.getElementById('team-hero').innerHTML    = html; }
+function mountTabs(html)    { document.getElementById('section-tabs').innerHTML = html; }
 function mountContent(html) {
   const container = document.getElementById('tab-content');
   container.innerHTML = html;
   const panel = container.querySelector('.tab-panel');
   if (panel) {
     panel.classList.remove('tab-panel');
-    void panel.offsetWidth; // force reflow to restart animation
+    void panel.offsetWidth;
     panel.classList.add('tab-panel');
   }
 }
 
 function renderHero(team) {
   const accentTextClass = isLightColor(team.colors.accent) ? 'badge-silver' : '';
+  const pickLabel = team.draftPick <= 32 ? `Pick #${team.draftPick}` : `R2 · Pick #${team.draftPick}`;
   return `
     <div class="hero-inner">
       <div class="hero-abbr">${team.abbreviation}</div>
@@ -157,7 +176,7 @@ function renderHero(team) {
         <h2 class="hero-name">${team.city} ${team.name}</h2>
         <div class="hero-meta">
           <span class="hero-record">${team.season.record}</span>
-          <span class="hero-pick ${accentTextClass}">Pick #${team.draftPick} · 2026 NFL Draft</span>
+          <span class="hero-pick ${accentTextClass}">${pickLabel} · 2024 NFL Draft</span>
         </div>
       </div>
     </div>
@@ -166,9 +185,9 @@ function renderHero(team) {
 
 function renderTabs() {
   const tabs = [
-    { id: 'season',    label: 'Season Review', icon: '📊' },
-    { id: 'needs',     label: 'Team Needs',    icon: '🎯' },
-    { id: 'prospects', label: 'Draft Targets', icon: '⭐' }
+    { id: 'season', label: 'Season Review', icon: '📊' },
+    { id: 'needs',  label: 'Team Needs',    icon: '🎯' },
+    { id: 'mock',   label: 'Mock Draft',    icon: '⭐' }
   ];
   const buttonsHtml = tabs.map(tab => `
     <button
@@ -185,14 +204,14 @@ function renderTabs() {
 
 function renderActiveTab() {
   let html = '';
-  if      (currentTab === 'season')    html = renderSeasonTab(currentTeam);
-  else if (currentTab === 'needs')     html = renderNeedsTab(currentTeam);
-  else if (currentTab === 'prospects') html = renderProspectsTab(currentTeam);
+  if      (currentTab === 'season') html = renderSeasonTab(currentTeam);
+  else if (currentTab === 'needs')  html = renderNeedsTab(currentTeam);
+  else if (currentTab === 'mock')   html = renderMockDraftTab(currentTeam);
   mountContent(html);
 }
 
 /* ------------------------------------------------------------
-   H. Season Review Tab
+   I. Season Review Tab
    ------------------------------------------------------------ */
 function renderSeasonTab(team) {
   const statsHtml = team.season.stats.map(stat => {
@@ -202,6 +221,7 @@ function renderSeasonTab(team) {
         <span class="stat-label">${stat.label}</span>
         <span class="stat-value">${stat.value}</span>
         <span class="rank-badge ${rankClass}">Rank #${stat.rank}</span>
+        ${stat.context ? `<span class="stat-context">${stat.context}</span>` : ''}
       </div>
     `;
   }).join('');
@@ -211,8 +231,8 @@ function renderSeasonTab(team) {
 
   return `
     <div class="tab-panel">
-      <p class="section-heading">2025 Season Overview</p>
-      <p class="section-sub">${team.city} ${team.name} · ${team.season.record}</p>
+      <p class="section-heading">2023 Season Overview</p>
+      <p class="section-sub">${team.city} ${team.name} · ${team.season.record} · ${team.season.playoffResult}</p>
 
       <div class="season-summary">
         <h3>Season Summary</h3>
@@ -238,7 +258,7 @@ function renderSeasonTab(team) {
 }
 
 /* ------------------------------------------------------------
-   I. Team Needs Tab
+   J. Team Needs Tab
    ------------------------------------------------------------ */
 function renderNeedsTab(team) {
   const needsHtml = team.needs.map(need => {
@@ -258,6 +278,7 @@ function renderNeedsTab(team) {
             <span class="need-priority-badge ${priorityClass}">${need.priority} Need</span>
           </div>
           <p class="need-description">${need.description}</p>
+          ${need.scarcity ? `<p class="need-scarcity">2024 class depth: ${need.scarcity}</p>` : ''}
         </div>
       </div>
     `;
@@ -266,56 +287,82 @@ function renderNeedsTab(team) {
   return `
     <div class="tab-panel">
       <p class="section-heading">Key Positional Needs</p>
-      <p class="section-sub">Heading into the 2026 Draft, ranked by priority</p>
+      <p class="section-sub">Heading into the 2024 Draft, ranked by priority</p>
       <div class="needs-list">${needsHtml}</div>
     </div>
   `;
 }
 
 /* ------------------------------------------------------------
-   J. Draft Targets Tab
+   K. Mock Draft Tab
    ------------------------------------------------------------ */
-function renderProspectsTab(team) {
+function renderMockDraftTab(team) {
   const accentTextClass = isLightColor(team.colors.accent) ? 'badge-silver' : '';
 
-  const prospectsHtml = team.prospects.map(p => `
-    <div class="prospect-card">
-      <div class="prospect-header">
-        <div class="prospect-pos-badge ${accentTextClass}">${p.position}</div>
-        <div class="prospect-info">
-          <div class="prospect-name">${p.name}</div>
-          <div class="prospect-school">${p.school}</div>
+  const picksHtml = team.picks.map(pick => {
+    const dayGrade   = pick.round === 1 ? 'Day 1' : pick.round <= 3 ? 'Day 2' : 'Day 3';
+    const dayClass   = pick.round === 1 ? 'day-1' : pick.round <= 3 ? 'day-2' : 'day-3';
+    const matchPos   = POSITION_FILTER[pick.needPosition] || [pick.needPosition];
+    const prospects  = DRAFT_CLASS
+      .filter(p => matchPos.includes(p.position))
+      .sort((a, b) => a.pick - b.pick)
+      .slice(0, 3);
+
+    const prospectsHtml = prospects.length
+      ? prospects.map(p => {
+          const pDay      = p.round === 1 ? 'Day 1' : p.round <= 3 ? 'Day 2' : 'Day 3';
+          const pDayClass = p.round === 1 ? 'day-1' : p.round <= 3 ? 'day-2' : 'day-3';
+          return `
+            <div class="mock-prospect">
+              <div class="mock-prospect-pos ${accentTextClass}">${p.position}</div>
+              <div class="mock-prospect-info">
+                <span class="mock-prospect-name">${p.player}</span>
+                <span class="mock-prospect-college">${p.college || 'Unknown'}</span>
+              </div>
+              <span class="mock-day-badge ${pDayClass}">${pDay}</span>
+            </div>
+          `;
+        }).join('')
+      : `<p class="mock-no-prospects">No prospects found for this position in the 2024 class.</p>`;
+
+    return `
+      <div class="mock-pick-row">
+        <div class="mock-pick-header">
+          <div class="mock-pick-label">
+            <span class="mock-round">Round ${pick.round} · Pick #${pick.pick}</span>
+            <span class="mock-day-badge ${dayClass}">${dayGrade}</span>
+          </div>
+          <div class="mock-pick-need">
+            Addressing: <strong>${positionLabel(pick.needPosition)}</strong>
+          </div>
+        </div>
+        <div class="mock-prospects-list">
+          ${prospectsHtml}
         </div>
       </div>
-      <span class="prospect-round">${p.projectedRound}</span>
-      <div class="prospect-divider"></div>
-      <p class="prospect-summary">${p.summary}</p>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   return `
     <div class="tab-panel">
-      <p class="section-heading">Top Draft Targets</p>
-      <p class="section-sub">Prospects that fit ${team.city}'s needs at pick #${team.draftPick}</p>
-      <div class="prospects-grid">${prospectsHtml}</div>
+      <p class="section-heading">Mock Draft</p>
+      <p class="section-sub">Prospect fits for ${team.city} at each of their ${team.picks.length} picks</p>
+      <div class="mock-draft-list">
+        ${picksHtml}
+      </div>
     </div>
   `;
 }
 
 /* ------------------------------------------------------------
-   K. Utility Functions
+   L. Utility Functions
    ------------------------------------------------------------ */
-
-// Returns rank badge CSS class.
-// `good` is true when the team performed well in that category.
-// A good result is always green; a bad result with a very low rank is red; otherwise neutral.
 function getRankClass(rank, good) {
-  if (good)        return 'rank-good';
-  if (rank > 20)   return 'rank-bad';
+  if (good)       return 'rank-good';
+  if (rank > 20)  return 'rank-bad';
   return 'rank-mid';
 }
 
-// Converts hex color (#RRGGBB) to an [r, g, b] array
 function hexToRgbParts(hex) {
   const clean = hex.replace('#', '');
   const r = parseInt(clean.slice(0, 2), 16);
@@ -324,34 +371,34 @@ function hexToRgbParts(hex) {
   return [r, g, b];
 }
 
-// Returns true if a hex color is "light" (for contrast decisions)
 function isLightColor(hex) {
   const [r, g, b] = hexToRgbParts(hex);
-  // Perceived luminance formula
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.55;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.55;
 }
 
-// Maps a position abbreviation to a full readable label
 function positionLabel(pos) {
   const map = {
-    QB:  'Quarterback',
-    OT:  'Offensive Tackle',
-    CB:  'Cornerback',
-    WR:  'Wide Receiver',
-    IOL: 'Interior Offensive Line',
-    S:   'Safety',
-    TE:  'Tight End',
-    LB:  'Linebacker',
-    RB:  'Running Back',
-    DL:  'Defensive Line',
-    EDGE:'Edge Rusher',
-    DE:  'Defensive End',
-    DT:  'Defensive Tackle',
-    OG:  'Offensive Guard',
-    C:   'Center',
-    K:   'Kicker',
-    P:   'Punter'
+    QB:   'Quarterback',
+    OL:   'Offensive Line',
+    OT:   'Offensive Tackle',
+    WR:   'Wide Receiver',
+    TE:   'Tight End',
+    CB:   'Cornerback',
+    DB:   'Defensive Back',
+    SAF:  'Safety',
+    LB:   'Linebacker',
+    OLB:  'Outside Linebacker',
+    EDGE: 'Edge Rusher',
+    DL:   'Defensive Line',
+    DT:   'Defensive Tackle',
+    DE:   'Defensive End',
+    RB:   'Running Back',
+    IOL:  'Interior Offensive Line',
+    G:    'Guard',
+    C:    'Center',
+    FS:   'Free Safety',
+    K:    'Kicker',
+    P:    'Punter',
   };
   return map[pos] || pos;
 }
